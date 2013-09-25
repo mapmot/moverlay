@@ -1,0 +1,149 @@
+diff -Naur x11-wm/compiz-0.9.11.9999/work/compiz-0.9.11.9999/plugins/composite/src/screen.cpp x11-wm.new/compiz-0.9.11.9999/work/compiz-0.9.11.9999/plugins/composite/src/screen.cpp
+--- x11-wm/compiz-0.9.11.9999/work/compiz-0.9.11.9999/plugins/composite/src/screen.cpp	2013-09-09 10:36:09.209461000 +0300
++++ x11-wm.new/compiz-0.9.11.9999/work/compiz-0.9.11.9999/plugins/composite/src/screen.cpp	2013-09-09 10:17:46.783659881 +0300
+@@ -120,7 +120,7 @@
+ 	    if (event->xclient.message_type == Atoms::winOpacity)
+ 	    {
+ 		w = screen->findWindow (event->xclient.window);
+-		if (w && (w->type () & CompWindowTypeDesktopMask) == 0)
++		if (w)
+ 		{
+ 		    unsigned short opacity = event->xclient.data.l[0] >> 16;
+ 
+diff -Naur x11-wm/compiz-0.9.11.9999/work/compiz-0.9.11.9999/plugins/composite/src/window.cpp x11-wm.new/compiz-0.9.11.9999/work/compiz-0.9.11.9999/plugins/composite/src/window.cpp
+--- x11-wm/compiz-0.9.11.9999/work/compiz-0.9.11.9999/plugins/composite/src/window.cpp	2013-09-09 10:36:09.209461000 +0300
++++ x11-wm.new/compiz-0.9.11.9999/work/compiz-0.9.11.9999/plugins/composite/src/window.cpp	2013-09-09 10:20:44.932301657 +0300
+@@ -44,10 +44,9 @@
+ 
+     priv->opacity = OPAQUE;
+ 
+-    if (!(w->type () & CompWindowTypeDesktopMask))
+-	priv->opacity = s->getWindowProp32 (w->id (),
+-					    Atoms::winOpacity, OPAQUE);
+-
++    priv->opacity = s->getWindowProp32 (w->id (),
++	      			        Atoms::winOpacity, OPAQUE);
++ 
+     priv->brightness = s->getWindowProp32 (w->id (),
+ 					   Atoms::winBrightness, BRIGHT);
+ 
+@@ -458,9 +457,6 @@
+ void
+ CompositeWindow::updateOpacity ()
+ {
+-    if (priv->window->type () & CompWindowTypeDesktopMask)
+-	return;
+-
+     unsigned short opacity =
+ 	screen->getWindowProp32 (priv->window->id (),
+ 				 Atoms::winOpacity, OPAQUE);
+diff -Naur x11-wm/compiz-0.9.11.9999/work/compiz-0.9.11.9999/plugins/wallpaper/src/wallpaper.cpp x11-wm.new/compiz-0.9.11.9999/work/compiz-0.9.11.9999/plugins/wallpaper/src/wallpaper.cpp
+--- x11-wm/compiz-0.9.11.9999/work/compiz-0.9.11.9999/plugins/wallpaper/src/wallpaper.cpp	2013-09-09 10:36:09.209461000 +0300
++++ x11-wm.new/compiz-0.9.11.9999/work/compiz-0.9.11.9999/plugins/wallpaper/src/wallpaper.cpp	2013-09-09 10:27:23.602970649 +0300
+@@ -95,13 +95,21 @@
+ 				 CWBackPixel | CWBorderPixel | CWColormap,
+ 				 &attr);
+ 
+-    XSetWMProperties (dpy, fakeDesktop, NULL, NULL,
++    const char *name = "compiz_wallpaper";
++    XTextProperty window_name;
++    XStringListToTextProperty(const_cast<char **>(&name), 1, &window_name);
++
++    XSetWMProperties (dpy, fakeDesktop, &window_name, NULL,
+ 		      programArgv, programArgc, &xsh, &xwmh, NULL);
+ 
+     XChangeProperty (dpy, fakeDesktop, Atoms::winStateSkipPager,
+ 		     XA_ATOM, 32, PropModeReplace,
+ 		     (unsigned char *) &Atoms::winStateSkipPager, 1);
+ 
++    XChangeProperty (dpy, fakeDesktop, Atoms::winStateBelow,
++		     XA_ATOM, 32, PropModeReplace,
++		     (unsigned char *) &Atoms::winStateBelow, 1);
++
+     XChangeProperty (dpy, fakeDesktop, Atoms::winType,
+ 		     XA_ATOM, 32, PropModeReplace,
+ 		     (unsigned char *) &Atoms::winTypeDesktop, 1);
+@@ -371,13 +379,10 @@
+ {
+     screen->handleEvent (event);
+ 
+-    if (!screen->desktopWindowCount ()	&&
+-	fakeDesktop == None		&&
+-	!backgroundsPrimary.empty())
++    if (fakeDesktop == None && !backgroundsPrimary.empty())
+ 	createFakeDesktopWindow ();
+ 
+-    if ((screen->desktopWindowCount () > 1 || backgroundsPrimary.empty()) &&
+-	fakeDesktop != None)
++    if (backgroundsPrimary.empty() && fakeDesktop != None)
+ 	destroyFakeDesktopWindow ();
+ }
+ 
+@@ -660,7 +665,7 @@
+     updateProperty ();
+     cScreen->damageScreen ();
+ 
+-    if (!screen->desktopWindowCount () && backgroundsPrimary.size())
++    if (backgroundsPrimary.size())
+ 	createFakeDesktopWindow ();
+ }
+ 
+diff -Naur x11-wm/compiz-0.9.11.9999/work/compiz-0.9.11.9999/src/window.cpp x11-wm.new/compiz-0.9.11.9999/work/compiz-0.9.11.9999/src/window.cpp
+--- x11-wm/compiz-0.9.11.9999/work/compiz-0.9.11.9999/src/window.cpp	2013-09-09 10:36:09.209461000 +0300
++++ x11-wm.new/compiz-0.9.11.9999/work/compiz-0.9.11.9999/src/window.cpp	2013-09-09 10:34:35.071808120 +0300
+@@ -2581,6 +2581,10 @@
+     unsigned int type         = w->priv->type;
+     unsigned int belowMask;
+ 
++    if (type == CompWindowTypeDesktopMask &&
++        (w->priv->state & CompWindowStateBelowMask))
++        return NULL;    /* always at the bottom */
++
+     if (aboveFs)
+ 	belowMask = CompWindowTypeDockMask;
+     else
+@@ -2680,6 +2684,10 @@
+     Window       clientLeader    = w->priv->clientLeader;
+     unsigned int type            = w->priv->type;
+ 
++    if (type == CompWindowTypeDesktopMask &&
++        (w->priv->state & CompWindowStateBelowMask))
++        return NULL;    /* always at the bottom */
++
+     /* normal stacking fullscreen windows with below state */
+     if (type & CompWindowTypeFullscreenMask &&
+ 	w->priv->state & CompWindowStateBelowMask)
+@@ -2711,9 +2719,6 @@
+ 	switch (type)
+ 	{
+ 	    case CompWindowTypeDesktopMask:
+-		/* desktop window layer - desktop windows always should be
+-	       stacked at the bottom; no other window should be below them */
+-		return NULL;
+ 		break;
+ 
+ 	    case CompWindowTypeFullscreenMask:
+@@ -2758,6 +2763,9 @@
+ 	lowest = below;
+     }
+ 
++    if (type == CompWindowTypeDesktopMask)
++        return NULL;
++
+     if (existsOnServer (lowest, lock))
+ 	return lowest;
+     else
+@@ -2797,9 +2805,11 @@
+     if (sibling == w || avoidStackingRelativeTo (sibling, lock))
+ 	return false;
+ 
+-    /* always above desktop windows */
++    /* always okay above desktop windows, unless we're a desktop window kept below */
+     if (sibling->priv->type & CompWindowTypeDesktopMask)
+-	return true;
++	return !(type == CompWindowTypeDesktopMask &&
++                 (w->priv->state & CompWindowStateBelowMask) &&
++                 !(sibling->priv->state & CompWindowStateBelowMask));
+ 
+     switch (type)
+     {
