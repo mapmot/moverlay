@@ -4,7 +4,9 @@
 
 EAPI=5
 
-inherit versionator
+PYTHON_COMPAT=( python{2_6,2_7} )
+
+inherit python-r1 versionator
 
 MINOR_VERSION=$(get_version_component_range 4)
 MAJOR_BRANCH=$(get_version_component_range 1-3)
@@ -12,10 +14,10 @@ MAJOR_BRANCH=$(get_version_component_range 1-3)
 if [[ ${MINOR_VERSION} == 9999 ]]; then
 	EBZR_REPO_URI="http://bazaar.launchpad.net/~compiz-team/compiz/${MAJOR_BRANCH}"
 	inherit bzr
-	KEYWORDS=""
+	KEYWORDS="~amd64 ~arm ~x86"
 	SRC_URI=""
 else
-	KEYWORDS="~amd64 ~x86"
+	KEYWORDS="amd64 arm x86"
 	SRC_URI="http://launchpad.net/${PN}/${MAJOR_BRANCH}/${PV}/+download/${P}.tar.bz2"
 fi
 
@@ -153,7 +155,11 @@ src_configure() {
 		"-DCOMPIZ_DISABLE_SCHEMAS_INSTALL=ON"
 		"-DCOMPIZ_PACKAGING_ENABLED=ON"
 	)
-	cmake-utils_src_configure
+	python_foreach_impl cmake-utils_src_configure
+}
+
+src_compile() {
+	python_foreach_impl cmake-utils_src_compile
 }
 
 src_install() {
@@ -163,7 +169,7 @@ src_install() {
 	for i in `find . -type f -name "cmake_install.cmake"`;do
 		sed -e "s|/usr|${D}/usr|g" -i "${i}"  || die "sed failed"
 	done
-	emake install
+	python_foreach_impl emake install
 	popd
 }
 
