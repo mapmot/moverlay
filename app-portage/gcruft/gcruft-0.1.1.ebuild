@@ -9,7 +9,7 @@ inherit eutils multilib
 DESCRIPTION="helps finding orphaned files on a gentoo system"
 HOMEPAGE="http://www.genoetigt.de/site/projects/gcruft"
 SRC_URI="http://files.keksbude.net/gentoo/distfiles/${P}.tar.bz2"
-KEYWORDS="~x86 ~amd64"
+KEYWORDS="~x86 ~amd64 ~arm"
 LICENSE="GPL-2"
 RESTRICT="mirror"
 SLOT="0"
