@@ -1,0 +1,14 @@
+--- ffmpeg.c	2013-10-13 17:09:24.416759384 +0300
++++ ffmpeg.c	2013-10-13 17:15:39.405359103 +0300
+@@ -536,9 +536,11 @@
+         /* Use append file protocol for mpeg1, to get the append behavior from 
+          * url_fopen, but no protocol (=> default) for other codecs.
+          */
++	/* This no longer works...
+         if (is_mpeg1) 
+             snprintf(file_proto, sizeof(file_proto), APPEND_PROTO ":%s", filename);
+         else 
++	*/
+             snprintf(file_proto, sizeof(file_proto), "%s", filename);
+         
+ 
