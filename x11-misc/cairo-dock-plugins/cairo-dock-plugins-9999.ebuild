@@ -46,13 +46,13 @@ RDEPEND="
 	xgamma? ( x11-libs/libXxf86vm )
 	xklavier? ( x11-libs/libxklavier )
 	vala? ( dev-lang/vala:0.12 )
+	dev-libs/libdbusmenu:3[gtk]
 "
 
 DEPEND="${RDEPEND}
 	dev-util/intltool
 	sys-devel/gettext
 	dev-util/pkgconfig
-	dev-libs/libdbusmenu:3[gtk]
 "
 
 pkg_setup()
