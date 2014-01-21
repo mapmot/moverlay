@@ -37,7 +37,7 @@ RDEPEND="
 	gnome-base/librsvg
 	sys-apps/dbus
 	x11-libs/cairo
-	x11-libs/gtk+:2
+	x11-libs/gtk+:3
 	x11-libs/gtkglext
 	x11-libs/libXrender
 	net-misc/curl

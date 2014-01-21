@@ -46,7 +46,7 @@ RDEPEND="
 	xgamma? ( x11-libs/libXxf86vm )
 	xklavier? ( x11-libs/libxklavier )
 	vala? ( dev-lang/vala:0.12 )
-	dev-libs/libdbusmenu:3[gtk]
+	dev-libs/libdbusmenu:3
 "
 
 DEPEND="${RDEPEND}
