@@ -15,9 +15,9 @@ SLOT="0"
 KEYWORDS="~x86 ~amd64"
 IUSE=""
 
-DEPEND="dev-libs/libusb
-	dev-libs/glib:2
-	!media-video/r5u870"
+DEPEND="dev-libs/glib:2
+		virtual/libusb:0
+		!media-video/r5u870"
 RDEPEND=""
 
 S="${WORKDIR}"/`ls ${WORKDIR}`
