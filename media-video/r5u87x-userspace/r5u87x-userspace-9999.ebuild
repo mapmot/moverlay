@@ -15,10 +15,10 @@ SLOT="0"
 KEYWORDS="~x86 ~amd64"
 IUSE=""
 
-DEPEND="dev-libs/glib:2
+RDEPEND="dev-libs/glib:2
 		virtual/libusb:0
 		!media-video/r5u870"
-RDEPEND=""
+DEPEND="${RDEPEND}"
 
 S="${WORKDIR}"/`ls ${WORKDIR}`
 
